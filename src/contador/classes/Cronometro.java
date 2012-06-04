@@ -50,14 +50,15 @@ public class Cronometro extends JPanel implements ActionListener{
 			t.start();
 			
 		}
-				
+						
+		textCronometro.setText("" + i);
+		
 		if(Integer.parseInt(textCronometro.getText()) == 0){
 			System.out.println("Chegou no zero!");
 			t.stop();
 		}
-		
 		i = i - 1;
-		textCronometro.setText("" + i);
+		
 		
 	}
 }
