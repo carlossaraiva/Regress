@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Sealed: true
+Main-Class: contador.classes.Principal
+
+Name: contador/classes/
+Sealed: false
+
