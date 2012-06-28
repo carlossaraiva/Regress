@@ -26,6 +26,7 @@ public class Cronometro extends Panel implements ActionListener{
 		setLayout(null);
 						
 		textCronometro = new JTextField();
+		textCronometro.setToolTipText("Digite um valor a ser contado regressivamente.");
 		textCronometro.setForeground(new Color(0, 0, 0));
 		textCronometro.setHorizontalAlignment(SwingConstants.RIGHT);
 		textCronometro.setFont(new Font("Arial", Font.PLAIN, 80));

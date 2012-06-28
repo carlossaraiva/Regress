@@ -1,57 +1,70 @@
 package contador.classes.swt;
-import java.util.Timer;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TaskItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+
+import contador.classes.engine.contador;
 
 public class Cronometro extends Composite implements Runnable {
 
 	private Button btnStart;
 	private TaskItem item;
-	private Timer timer;
-	private Display display;
 	private Text text;
-
-	private static int i;
-	private static int j;
-	private static int tempo;
-	private static double progresso;
-	private static double razao;
-	private Runnable run;
-
+	private static contador contador;
 	private Thread thread;
+	private Runnable runnable;
 
 	public Cronometro(Composite parent, int style) {
+
 		super(parent, style);
 
-		text = new Text(this, SWT.BORDER);
+		text = new Text(this, SWT.RIGHT);
+		text.setToolTipText("Digite o valor a ser contado.");
 		text.setFont(SWTResourceManager.getFont("Segoe UI", 62, SWT.NORMAL));
 		text.setBounds(0, 0, 298, 120);
-
-		btnStart = new Button(this, SWT.NONE);
-		btnStart.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				
-				item.setProgressState(SWT.NORMAL);
-				setClock();
+		text.addVerifyListener(new VerifyListener() {
+			public void verifyText(VerifyEvent e) {
+				String string = e.text;
+				char[] chars = new char[string.length()];
+				string.getChars(0, chars.length, chars, 0);
+				for (int i = 0; i < chars.length; i++) {
+					if (!('0' <= chars[i] && chars[i] <= '9')) {
+						e.doit = false;
+						return;
+					}
+				}
 			}
 		});
+
+		btnStart = new Button(this, SWT.NONE);
 		btnStart.setBounds(10, 126, 75, 25);
 		btnStart.setText("Start");
-		
+		btnStart.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseUp(MouseEvent e) {
+				item.setProgressState(SWT.NORMAL);
+				contador = new contador(Integer.parseInt(text.getText()));
+				thread = new Thread(runnable);
+				thread.start();
+			}
+		});
+
 		item = Principal.getTaskBarItem();
-		if(item != null){
+		if (item != null) {
 			item.setProgressState(SWT.INDETERMINATE);
 		}
-		j = 0;
+
+		setClock();
+		System.out.println(runnable);
 	}
 
 	@Override
@@ -62,61 +75,39 @@ public class Cronometro extends Composite implements Runnable {
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-
 	}
 
 	public void setClock() {
-
-		try {
-			tempo = Integer.parseInt(text.getText());
-			i = tempo;
-			progresso = 0;
-			razao = 100/(double)tempo;
-			System.out.println(razao);
-		} catch (IllegalArgumentException e) {
-			e.getStackTrace();
-			System.err.println("Campo nulo!");
-
-		}
-
-		run = new Runnable() {
-			
+		runnable = new Runnable() {
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 
-				System.out.println("@!");
 				try {
-					while (true) {
-						
+					while (contador.getTempo() >= 0) {
+
 						Display.getDefault().asyncExec(new Runnable() {
 							public void run() {
-								text.setText(Integer.toString(i));
-								
-							  item.setProgress((int)(progresso+=razao)); 
-							  //System.out.println(progresso+=razao/tempo);
-						
-								if(Integer.parseInt(text.getText()) == 0){
-									
-									thread.interrupt();
+
+								contador.setTempo();
+								text.setText(String.valueOf(contador.getTempo()));
+								item.setProgress(contador.getProgresso());
+								if (contador.getTempo() == 0) {
 									item.setProgressState(SWT.INDETERMINATE);
 								}
-								i--;
-								j++;
 							}
 						});
 						Thread.sleep(1000);
-
 					}
+
+					thread.interrupt();
+
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
+
 					e.printStackTrace();
 				}
 
 			}
 		};
-		thread = new Thread(run);
-		thread.start();
 	}
-
 }
